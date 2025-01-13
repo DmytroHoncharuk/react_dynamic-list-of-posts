@@ -18,7 +18,7 @@ export const App = () => {
   const [postsFromServer, setPostsFromServer] = React.useState<Post[]>();
 
   const [chosenUser, setChosenUser] = React.useState<User | null>(null);
-  const [userError, setUserError] = React.useState(false);
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const [postError, setPostError] = React.useState(false);
   const [isPostsLoading, setIsPostsLoading] = React.useState(false);
   const [activePost, setActivePost] = React.useState<Post | null>(null);
@@ -30,7 +30,6 @@ export const App = () => {
 
         setUsersFromServer(currentUsers);
       } catch (err) {
-        setUserError(true);
       } finally {
       }
     };

@@ -13,6 +13,7 @@ export const PostsList: React.FC<Props> = ({
   choosePost,
 }) => {
   function handleClickToChoosePost(post: Post) {
+
     if (!activePost) {
       choosePost(post);
     }

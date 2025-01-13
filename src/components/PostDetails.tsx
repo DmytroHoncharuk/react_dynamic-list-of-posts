@@ -1,39 +1,67 @@
-import { getCommentsOfPost } from '../utils/api';
-import React, { useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
+import { getCommentsOfPost, deleteComment } from '../utils/api';
 import { Post } from '../types/Post';
 import { Comment } from '../types/Comment';
 import { Loader } from './Loader';
+import { NewCommentForm } from './NewCommentForm';
 
 type Props = {
   post?: Post | null;
 };
 
 export const PostDetails: React.FC<Props> = ({ post }) => {
-  const [isLoading, setIsLoading] = React.useState<boolean>(false);
-  const [error, setError] = React.useState<boolean>(false);
-  const [commentsFromServer, setCommentsFromServer] = React.useState<Comment[]>(
-    [],
-  );
+  const [isLoading, setIsLoading] = useState<boolean>(false);
+  const [error, setError] = useState<string | null>(null);
+  const [commentsFromServer, setCommentsFromServer] = useState<Comment[]>([]);
+  const [isFormVisible, setIsFormVisible] = useState<boolean>(false);
+  const [currentPostId, setCurrentPostId] = useState<number | null>(null);
 
   useEffect(() => {
     const fetchComments = async () => {
+      if (!post?.id) {
+        return;
+      }
+
       setIsLoading(true);
+      setError(null);
 
       try {
-        const currentComments = await getCommentsOfPost(post?.id ?? 0);
+        const currentComments = await getCommentsOfPost(post.id);
 
         setCommentsFromServer(currentComments);
-      } catch (err) {
-        setError(true);
+      } catch {
+        setError('Failed to load comments. Please try again later.');
       } finally {
         setIsLoading(false);
       }
     };
 
-    if (post?.id) {
+    if (post?.id !== currentPostId) {
+      setIsFormVisible(false); // Закриваємо форму при зміні посту
+      setCurrentPostId(post?.id || null); // Оновлюємо ID поточного посту
       fetchComments();
     }
-  }, [post?.id]);
+  }, [post, currentPostId]);
+
+  const handleDelete = async (commentId: number) => {
+    const originalComments = [...commentsFromServer];
+
+    setCommentsFromServer(prev =>
+      prev.filter(comment => comment.id !== commentId),
+    );
+    setError(null);
+
+    try {
+      await deleteComment(commentId);
+    } catch {
+      setError('Failed to delete comment. Please try again.');
+      setCommentsFromServer(originalComments); // Відновлюємо список у разі помилки
+    }
+  };
+
+  const handleAddComment = (newComment: Comment) => {
+    setCommentsFromServer(prev => [...prev, newComment]);
+  };
 
   return (
     <div className="content" data-cy="PostDetails">
@@ -47,21 +75,8 @@ export const PostDetails: React.FC<Props> = ({ post }) => {
           <Loader />
         ) : error ? (
           <div className="notification is-danger" data-cy="CommentsError">
-            Something went wrong
+            {error}
           </div>
-        ) : commentsFromServer.length === 0 ? (
-          <>
-            <p className="title is-4" data-cy="NoCommentsMessage">
-              No comments yet
-            </p>
-            <button
-              data-cy="WriteCommentButton"
-              type="button"
-              className="button is-link"
-            >
-              Write a comment
-            </button>
-          </>
         ) : (
           <>
             <p className="title is-4">Comments:</p>
@@ -80,6 +95,7 @@ export const PostDetails: React.FC<Props> = ({ post }) => {
                     type="button"
                     className="delete is-small"
                     aria-label="delete"
+                    onClick={() => handleDelete(comment.id)}
                   >
                     delete button
                   </button>
@@ -89,18 +105,29 @@ export const PostDetails: React.FC<Props> = ({ post }) => {
                 </div>
               </article>
             ))}
-            <button
-              data-cy="WriteCommentButton"
-              type="button"
-              className="button is-link"
-            >
-              Write a comment
-            </button>
+
+            {/* Кнопка Write a comment зникає, якщо форма відкрита */}
+            {!isFormVisible && (
+              <button
+                data-cy="WriteCommentButton"
+                type="button"
+                className="button is-link"
+                onClick={() => setIsFormVisible(true)}
+              >
+                Write a comment
+              </button>
+            )}
+
+            {/* Відображення форми */}
+            {isFormVisible && post?.id && (
+              <NewCommentForm
+                postId={post.id}
+                onCommentAdded={handleAddComment}
+              />
+            )}
           </>
         )}
       </div>
-
-      {/*<NewCommentForm />*/}
     </div>
   );
 };
