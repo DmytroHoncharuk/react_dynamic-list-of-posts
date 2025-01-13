@@ -37,8 +37,8 @@ export const PostDetails: React.FC<Props> = ({ post }) => {
     };
 
     if (post?.id !== currentPostId) {
-      setIsFormVisible(false); // Закриваємо форму при зміні посту
-      setCurrentPostId(post?.id || null); // Оновлюємо ID поточного посту
+      setIsFormVisible(false);
+      setCurrentPostId(post?.id || null);
       fetchComments();
     }
   }, [post, currentPostId]);
@@ -55,7 +55,7 @@ export const PostDetails: React.FC<Props> = ({ post }) => {
       await deleteComment(commentId);
     } catch {
       setError('Failed to delete comment. Please try again.');
-      setCommentsFromServer(originalComments); // Відновлюємо список у разі помилки
+      setCommentsFromServer(originalComments);
     }
   };
 
@@ -75,8 +75,30 @@ export const PostDetails: React.FC<Props> = ({ post }) => {
           <Loader />
         ) : error ? (
           <div className="notification is-danger" data-cy="CommentsError">
-            {error}
+            Something went wrong
           </div>
+        ) : commentsFromServer.length === 0 ? (
+          <>
+            <p className="title is-4" data-cy="NoCommentsMessage">
+              No comments yet
+            </p>
+            {!isFormVisible && (
+              <button
+                data-cy="WriteCommentButton"
+                type="button"
+                className="button is-link"
+                onClick={() => setIsFormVisible(true)}
+              >
+                Write a comment
+              </button>
+            )}
+            {isFormVisible && post?.id && (
+              <NewCommentForm
+                postId={post.id}
+                onCommentAdded={handleAddComment}
+              />
+            )}
+          </>
         ) : (
           <>
             <p className="title is-4">Comments:</p>
@@ -106,7 +128,6 @@ export const PostDetails: React.FC<Props> = ({ post }) => {
               </article>
             ))}
 
-            {/* Кнопка Write a comment зникає, якщо форма відкрита */}
             {!isFormVisible && (
               <button
                 data-cy="WriteCommentButton"
@@ -118,7 +139,6 @@ export const PostDetails: React.FC<Props> = ({ post }) => {
               </button>
             )}
 
-            {/* Відображення форми */}
             {isFormVisible && post?.id && (
               <NewCommentForm
                 postId={post.id}

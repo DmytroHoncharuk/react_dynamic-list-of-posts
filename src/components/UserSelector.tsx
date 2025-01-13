@@ -15,8 +15,28 @@ export const UserSelector: React.FC<Props> = ({
 }) => {
   const [isActive, setIsActive] = React.useState(false);
 
+  const dropdownRef = React.useRef<HTMLDivElement>(null);
+
+  React.useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (
+        dropdownRef.current &&
+        !dropdownRef.current.contains(event.target as Node)
+      ) {
+        setIsActive(false);
+      }
+    };
+
+    document.addEventListener('click', handleClickOutside);
+
+    return () => {
+      document.removeEventListener('click', handleClickOutside);
+    };
+  }, []);
+
   return (
     <div
+      ref={dropdownRef}
       data-cy="UserSelector"
       className={classNames('dropdown', { 'is-active': isActive })}
     >
@@ -26,10 +46,9 @@ export const UserSelector: React.FC<Props> = ({
           className="button"
           aria-haspopup="true"
           aria-controls="dropdown-menu"
-          onClick={() => setIsActive(prevState => !prevState)}
+          onClick={() => setIsActive(prev => !prev)}
         >
-          <span>{chosenUser ? `${chosenUser.name}` : 'Choose a user'}</span>
-
+          <span>{chosenUser ? chosenUser.name : 'Choose a user'}</span>
           <span className="icon is-small">
             <i className="fas fa-angle-down" aria-hidden="true" />
           </span>
@@ -46,7 +65,7 @@ export const UserSelector: React.FC<Props> = ({
                 'is-active': user.id === chosenUser?.id,
               })}
               onClick={() => {
-                setIsActive(prevState => !prevState);
+                setIsActive(false);
                 chooseUser(user);
               }}
             >

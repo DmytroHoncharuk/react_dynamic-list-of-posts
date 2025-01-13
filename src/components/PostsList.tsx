@@ -13,7 +13,6 @@ export const PostsList: React.FC<Props> = ({
   choosePost,
 }) => {
   function handleClickToChoosePost(post: Post) {
-
     if (!activePost) {
       choosePost(post);
     }
@@ -55,11 +54,9 @@ export const PostsList: React.FC<Props> = ({
                   className={classNames('button', 'is-link', {
                     'is-light': activePost?.id !== post.id,
                   })}
-                  // className="button is-link is-light" /*тут треба коли в нас відкрите модальне вікно, то забрати is-light*/
                   onClick={() => handleClickToChoosePost(post)}
                 >
                   {activePost?.id === post.id ? 'Close' : 'Open'}
-                  {/*тут коли відкрите модальне вікно має бути Close*/}
                 </button>
               </td>
             </tr>

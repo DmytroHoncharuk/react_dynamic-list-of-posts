@@ -108,9 +108,11 @@ export const App = () => {
               { 'Sidebar--open': activePost },
             )}
           >
-            <div className="tile is-child box is-success ">
-              <PostDetails post={activePost} />
-            </div>
+            {activePost && (
+              <div className="tile is-child box is-success">
+                <PostDetails post={activePost} />
+              </div>
+            )}
           </div>
         </div>
       </div>
