@@ -18,11 +18,14 @@ export const App = () => {
   const [postsFromServer, setPostsFromServer] = React.useState<Post[]>();
 
   const [chosenUser, setChosenUser] = React.useState<User | null>(null);
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const [postError, setPostError] = React.useState(false);
   const [isPostsLoading, setIsPostsLoading] = React.useState(false);
   const [activePost, setActivePost] = React.useState<Post | null>(null);
 
+  // Стан для помилок під час завантаження користувачів
+  const [userErrors, setUserErrors] = React.useState(false);
+
+  // Завантажуємо користувачів
   useEffect(() => {
     const fetchUsers = async () => {
       try {
@@ -30,13 +33,14 @@ export const App = () => {
 
         setUsersFromServer(currentUsers);
       } catch (err) {
-      } finally {
+        setUserErrors(true);
       }
     };
 
     fetchUsers();
   }, []);
 
+  // Завантажуємо пости обраного користувача
   useEffect(() => {
     const fetchPosts = async () => {
       setIsPostsLoading(true);
@@ -64,6 +68,10 @@ export const App = () => {
           <div className="tile is-parent">
             <div className="tile is-child box is-success">
               <div className="block">
+                {/*
+                  Передаємо у UserSelector порожній масив
+                  замість null, щоб уникнути помилок .map()
+                */}
                 <UserSelector
                   users={usersFromServer ?? []}
                   chosenUser={chosenUser}
@@ -72,7 +80,18 @@ export const App = () => {
               </div>
 
               <div className="block" data-cy="MainContent">
-                {!chosenUser ? (
+                {/* Якщо помилка при завантаженні користувачів */}
+                {userErrors && (
+                  <div
+                    className="notification is-danger"
+                    data-cy="UsersLoadingError"
+                  >
+                    Failed to load users. Please try again later.
+                  </div>
+                )}
+
+                {/* Якщо нема обраного користувача */}
+                {!userErrors && !chosenUser ? (
                   <p data-cy="NoSelectedUser">No user selected</p>
                 ) : isPostsLoading ? (
                   <Loader />
